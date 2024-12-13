@@ -6,11 +6,19 @@ const config = {
     },
 };
 
+function getFeedbackData(res) {
+  if (!res.ok) {
+      return Promise.reject(`Ошибка: ${res.status}`); 
+  }
+  return res.json();
+}
+
+
 export const getUserInfo = () => {
     return fetch(`${config.baseUrl}/users/me`, {
       headers: config.headers
     })
-      .then(res => res.json());
+      .then(getFeedbackData);
       
 }
 
@@ -23,7 +31,7 @@ export const updateUserInfo = (name, about) => {
         about: about
       })
     })
-    .then(res => res.json());
+    .then(getFeedbackData);
 }
 
 export const updateUserAvatar = (link) => {
@@ -34,7 +42,7 @@ export const updateUserAvatar = (link) => {
         avatar: link
       })
     })
-    .then(res => res.json());
+    .then(getFeedbackData);
 }
 
 
@@ -43,7 +51,7 @@ export const getInitialCards = () => {
       headers: config.headers
       
     })
-    .then(res => res.json());
+    .then(getFeedbackData);
 } 
 
 export const addNewCard = (name, link) => {
@@ -55,7 +63,7 @@ export const addNewCard = (name, link) => {
         link: link
       })
     })
-    .then(res => res.json());
+    .then(getFeedbackData);
 } 
 
 export const removeCard = (id) => {
@@ -63,7 +71,7 @@ export const removeCard = (id) => {
       method: 'DELETE',
       headers: config.headers
     })
-    .then(res => res.json());
+    .then(getFeedbackData);
 } 
 
 export const likeCard = (id, isLiked) => {
@@ -71,5 +79,5 @@ export const likeCard = (id, isLiked) => {
       method: isLiked? 'DELETE': 'PUT',
       headers: config.headers
     })
-    .then(res => res.json());
+    .then(getFeedbackData);
 } 

@@ -47,12 +47,12 @@ const newAvatarForm = document.forms['new-avatar'];
 const newAvatarInput = newAvatarForm.elements.link;
 
 const validationConfig = {
-    formSelector: ".popup__form",
-    inputSelector: ".popup__input",
-    submitButtonSelector: ".popup__button",
-    inactiveButtonClass: "popup__button_disabled",
-    inputErrorClass: "popup__input_type_error",
-    errorClass: "popup__error_visible",
+    formSelector: '.popup__form',
+    inputSelector: '.popup__input',
+    submitButtonSelector: '.popup__button',
+    inactiveButtonClass: 'popup__button_disabled',
+    inputErrorClass: 'popup__input_type_error',
+    errorClass: 'popup__error_visible',
   };
 
   let myId ="";
@@ -91,6 +91,9 @@ function handleOpenImagePopup(link, name) {
 function handleProfileFormSubmit (evt) {
     evt.preventDefault(); 
 
+    const button = profileForm.querySelector('.popup__button');
+    button.textContent = 'Сохранение...';
+
     updateUserInfo(profileFormNameInput.value, profileFormDescriptionInput.value)
     .then(userData => {
         profileTitle.textContent = userData.name; 
@@ -98,10 +101,20 @@ function handleProfileFormSubmit (evt) {
 
         closeModal(profileEditModal); 
     })
+    .catch(function (err) {
+        console.error('Ошибка при выполнении запроса:', err);
+        alert("Возникла ошибка. Пожалуйста, попробуйте снова.");
+    })
+    .finally(function () {
+        button.textContent = 'Сохранить';
+    });
 } 
 
 function handleNewCardSubmit (evt) {
     evt.preventDefault();
+    
+    const button = newCardForm.querySelector('.popup__button');
+    button.textContent = 'Сохранение...';
 
     addNewCard(newCardFormNameInput.value, newCardFormLinkInput.value)
     .then(newCardData => {
@@ -121,8 +134,15 @@ function handleNewCardSubmit (evt) {
             placeList.prepend(createdCard);
             newCardForm.reset(); 
             closeModal(сardAddModal); 
+     })
+    .catch(function (err) {
+        console.error('Ошибка при выполнении запроса:', err);
+        alert('Возникла ошибка. Пожалуйста, попробуйте снова.');
     })
-    }
+    .finally(function () {
+        button.textContent = 'Сохранить';
+    });
+}
 
     
 Promise.all([getUserInfo(), getInitialCards()]).then(([userData, cards]) => {
@@ -141,8 +161,11 @@ Promise.all([getUserInfo(), getInitialCards()]).then(([userData, cards]) => {
           handleLikeCard); 
         placeList.append(cardElement); 
     });
-
 })
+    .catch((err) => {
+       console.error('Ошибка при выполнении запроса:', err);
+       alert('Возникла ошибка. Пожалуйста, попробуйте снова.');
+});
 
 // @todo: Вывести карточки на страницу
 
@@ -163,6 +186,7 @@ profileEditButton.addEventListener ('click', () => {
 });
 
 сardAddButton.addEventListener('click', () => {
+    newAvatarForm.reset();
     clearValidation(newCardForm, validationConfig);
     openModal(сardAddModal);
 });
