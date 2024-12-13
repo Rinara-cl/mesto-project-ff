@@ -30,7 +30,7 @@ const profileFormDescriptionInput = profileForm.elements.description;
 
 const profileTitle = document.querySelector('.profile__title');
 const profileDescription = document.querySelector('.profile__description');
-const profileImege = document.querySelector('.profile__image');
+const profileImage = document.querySelector('.profile__image');
 
 const сardAddModal = document.querySelector('.popup_type_new-card');
 const сardAddButton = document.querySelector('.profile__add-button');
@@ -62,8 +62,8 @@ const validationConfig = {
 function handleAvatarForm(evt) {
     evt.preventDefault();
 
-    const button = newAvatarForm.querySelector(".popup__button");
-    button.textContent = "Сохранение...";
+    const button = newAvatarForm.querySelector('.popup__button');
+    button.textContent = 'Сохранение...';
 
     updateUserAvatar(newAvatarInput.value)
     .then(function (userData) {
@@ -72,11 +72,11 @@ function handleAvatarForm(evt) {
         newAvatarForm.reset();
     })
     .catch(function (err) {
-        console.error("Ошибка при выполнении запроса:", err);
-        alert("Возникла ошибка. Пожалуйста, попробуйте снова.");
+        console.error('Ошибка при выполнении запроса:', err);
+        alert('Возникла ошибка. Пожалуйста, попробуйте снова.');
     })
     .finally(function () {
-        button.textContent = "Сохранить";
+        button.textContent = 'Сохранить';
     });
 }
 
@@ -112,7 +112,7 @@ function handleNewCardSubmit (evt) {
     
        const createdCard = createCard
            (cardTemplate, 
-            newCard,
+            newCardData,
             myId,
             deleteCard, 
             handleOpenImagePopup,
@@ -128,7 +128,7 @@ function handleNewCardSubmit (evt) {
 Promise.all([getUserInfo(), getInitialCards()]).then(([userData, cards]) => {
     profileTitle.textContent = userData.name;
     profileDescription.textContent = userData.about;
-    profileImege.style.backgroundImage = `url(${userData.avatar})`;
+    profileImage.style.backgroundImage = `url(${userData.avatar})`;
     myId = userData._id;
 
     cards.forEach(function (element) { 
