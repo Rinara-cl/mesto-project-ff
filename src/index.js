@@ -2,6 +2,14 @@ import './pages/index.css';
 import { initialCards } from './cards';
 import { createCard, deleteCard, handleLikeCard } from './card';
 import { openModal, closeModal } from './modal';
+import { enableValidation, clearValidation } from './validation';
+import { 
+    getUserInfo, 
+    getInitialCards, 
+    updateUserInfo,
+    addNewCard,
+    updateUserAvatar
+} from './api';
 
 
 const cardTemplate = document.querySelector('#card-template').content;
@@ -22,17 +30,56 @@ const profileFormDescriptionInput = profileForm.elements.description;
 
 const profileTitle = document.querySelector('.profile__title');
 const profileDescription = document.querySelector('.profile__description');
+const profileImege = document.querySelector('.profile__image');
 
-
-const CardAddModal = document.querySelector('.popup_type_new-card');
-const CardAddButton = document.querySelector('.profile__add-button');
+const сardAddModal = document.querySelector('.popup_type_new-card');
+const сardAddButton = document.querySelector('.profile__add-button');
 const newCardForm = document.forms['new-place'];
-const newCardFormNameInput = newCardForm.elements['place-name'];
-const newCardFormLinkInput = newCardForm.elements.link;
+const newCardFormNameInput = document.forms['new-place'].elements['place-name'];
+const newCardFormLinkInput = document.forms['new-place'].elements.link;
 
 const modalCloseButton = document.querySelectorAll('.popup__close');
 
+
+const newAvatarButton = document.querySelector('.profile__image-button');
+const newAvatarModal = document.querySelector('.popup_type_new-avatar');
+const newAvatarForm = document.forms['new-avatar'];
+const newAvatarInput = newAvatarForm.elements.link;
+
+const validationConfig = {
+    formSelector: ".popup__form",
+    inputSelector: ".popup__input",
+    submitButtonSelector: ".popup__button",
+    inactiveButtonClass: "popup__button_disabled",
+    inputErrorClass: "popup__input_type_error",
+    errorClass: "popup__error_visible",
+  };
+
+  let myId ="";
+
 //функции
+
+function handleAvatarForm(evt) {
+    evt.preventDefault();
+
+    const button = newAvatarForm.querySelector(".popup__button");
+    button.textContent = "Сохранение...";
+
+    updateUserAvatar(newAvatarInput.value)
+    .then(function (userData) {
+        profileImage.style.backgroundImage = `url(${userData.avatar})`;
+        closeModal(newAvatarModal);
+        newAvatarForm.reset();
+    })
+    .catch(function (err) {
+        console.error("Ошибка при выполнении запроса:", err);
+        alert("Возникла ошибка. Пожалуйста, попробуйте снова.");
+    })
+    .finally(function () {
+        button.textContent = "Сохранить";
+    });
+}
+
 function handleOpenImagePopup(link, name) {
     cardModalImage.src = link;
     cardModalImage.alt = name;
@@ -42,60 +89,82 @@ function handleOpenImagePopup(link, name) {
 }
 
 function handleProfileFormSubmit (evt) {
-    evt.preventDefault();
+    evt.preventDefault(); 
 
-    profileTitle.textContent = profileFormNameInput.value;
-    profileDescription.textContent = profileFormDescriptionInput.value;
-    closeModal(profileEditModal);
-}
+    updateUserInfo(profileFormNameInput.value, profileFormDescriptionInput.value)
+    .then(userData => {
+        profileTitle.textContent = userData.name; 
+        profileDescription.textContent = userData.about; 
+
+        closeModal(profileEditModal); 
+    })
+} 
 
 function handleNewCardSubmit (evt) {
     evt.preventDefault();
 
-    const newCard = {
-        name: newCardFormNameInput.value,
-        link: newCardFormLinkInput.value
+    addNewCard(newCardFormNameInput.value, newCardFormLinkInput.value)
+    .then(newCardData => {
+        const newCard = {
+            name: newCardData.name,
+            link: newCardData.link
+        }
+    
+       const createdCard = createCard
+           (cardTemplate, 
+            newCard,
+            myId,
+            deleteCard, 
+            handleOpenImagePopup,
+            handleLikeCard);
+    
+            placeList.prepend(createdCard);
+            newCardForm.reset(); 
+            closeModal(сardAddModal); 
+    })
     }
 
-   const createdCard = createCard
-       (cardTemplate, 
-        newCard,
-        deleteCard, 
-        handleOpenImagePopup,
-        handleLikeCard
-    );
+    
+Promise.all([getUserInfo(), getInitialCards()]).then(([userData, cards]) => {
+    profileTitle.textContent = userData.name;
+    profileDescription.textContent = userData.about;
+    profileImege.style.backgroundImage = `url(${userData.avatar})`;
+    myId = userData._id;
 
-        placeList.prepend(createdCard);
-        newCardForm.reset(); 
-        closeModal(CardAddModal);
-}
+    cards.forEach(function (element) { 
+        const cardElement = createCard( 
+          cardTemplate,  
+          element,
+          myId,   
+          deleteCard, 
+          handleOpenImagePopup, 
+          handleLikeCard); 
+        placeList.append(cardElement); 
+    });
 
+})
 
 // @todo: Вывести карточки на страницу
-initialCards.forEach((element) => {
-  const cardElement = createCard(
-    cardTemplate, 
-    element, 
-    deleteCard,
-    handleOpenImagePopup,
-    handleLikeCard);
-  placeList.append(cardElement);
- });
-
-
 
  modals.forEach((modal) => {
      modal.classList.add('popup_is-animated');
 });
 
+newAvatarButton.addEventListener('click', () => {
+    clearValidation(newAvatarForm, validationConfig);
+    openModal(newAvatarModal);
+});
+
 profileEditButton.addEventListener ('click', () => {
     profileFormNameInput.value = profileTitle.textContent;
     profileFormDescriptionInput.value = profileDescription.textContent;
+    clearValidation(profileForm, validationConfig);
     openModal(profileEditModal);
 });
 
-CardAddButton.addEventListener('click', () => {
-    openModal(CardAddModal);
+сardAddButton.addEventListener('click', () => {
+    clearValidation(newCardForm, validationConfig);
+    openModal(сardAddModal);
 });
 
 modalCloseButton.forEach (button => {
@@ -105,5 +174,9 @@ modalCloseButton.forEach (button => {
     });
 });
 
+
+newAvatarForm.addEventListener('submit', handleAvatarForm);
 profileForm.addEventListener('submit', handleProfileFormSubmit);
-newCardForm.addEventListener('submit', handleNewCardSubmit);
+document.forms['new-place'].addEventListener('submit', handleNewCardSubmit);
+
+enableValidation(validationConfig);
